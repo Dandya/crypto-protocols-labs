@@ -42,6 +42,5 @@ func (k *MagmaKey) Data() []byte {
 func memclrNoHeapPointers(ptr unsafe.Pointer, n uintptr)
 
 func (k *MagmaKey) Clear() {
-	// hdr := (*reflect.SliceHeader)(unsafe.Pointer(&k.parts))
 	memclrNoHeapPointers(unsafe.Pointer(&k.parts), uintptr(keySize))
 }
