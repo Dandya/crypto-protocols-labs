@@ -209,6 +209,7 @@ func main() {
 
 	if conf.TestMode == "1" {
 		fmt.Println("Test mode 1")
+		fmt.Printf("File: %s\n", conf.FileIn)
 		var enc_time int64 = 0
 		var dec_time int64 = 0
 
@@ -241,6 +242,7 @@ func main() {
 		fmt.Printf("Decryption time: %f s\n", float64(dec_time)/1000000000)
 	} else if conf.TestMode == "2" {
 		fmt.Println("Test mode 2")
+		fmt.Printf("Blocks: %d\n", conf.BlocksCount)
 		ctx := mng.NewCryptoCtx(&settings)
 		if ctx == nil {
 			l.Fatal("[main] error init crypto ctx")
