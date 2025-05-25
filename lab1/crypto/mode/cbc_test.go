@@ -8,7 +8,7 @@ import (
 	"gost_magma_cbc/utils"
 )
 
-func TestMagmaSbox(t *testing.T) {
+func TestCBC(t *testing.T) {
 	ivhdata, err := utils.ConvertHexBigEndian(
 		"1234567890abcdef234567890abcdef134567890abcdef12")
 	if err != nil {

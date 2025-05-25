@@ -45,3 +45,6 @@ type CryptoModeStream interface {
 	Encrypt(base BaseAlgorithm, key Key, src Block, dst Block)
 	Decrypt(base BaseAlgorithm, key Key, src Block, dst Block)
 }
+
+type Hasher interface {
+}
