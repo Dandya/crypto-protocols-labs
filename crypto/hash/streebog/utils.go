@@ -38,35 +38,6 @@ func uint64sToBytes(w []uint64) []byte {
 	return dst
 }
 
-// func generateTables() (tables [8][256]uint64) {
-// 	var j, m, w, k int
-// 	var t, tmp0 byte
-// 	var a [8 * 8]byte
-
-// 	for j = 0; j < 8; j++ {
-// 		for m = 0; m < 256; m++ {
-// 			t = Sbox[m]
-
-// 			a = [8 * 8]byte{}
-
-// 			tmp0 = t
-// 			for w = 0; w < 8; w++ {
-// 				if (tmp0 & 1) != 0 {
-// 					for k = 0; k < 8; k++ {
-// 						a[k] ^= A[63-8*j-w][k]
-// 					}
-// 				}
-
-// 				tmp0 >>= 1
-// 			}
-
-// 			tables[j][m] = GetU64(a[:])
-// 		}
-// 	}
-
-// 	return
-// }
-
 func lps(block *[8]uint64) {
 	ch := uint64sToBytes(block[:])
 

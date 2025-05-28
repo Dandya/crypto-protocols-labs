@@ -91,6 +91,7 @@ type CryptoModeStream interface {
 	Decrypt(base BaseAlgorithm, key Key, src Block, dst Block)
 }
 
+// Интерфейс, реализующий логику вычисления хэша
 type Hasher interface {
 	// Вычисляет хэш-сумму для данных и изменяет базовое состояние хэша.
 	io.Writer
@@ -107,4 +108,12 @@ type Hasher interface {
 
 	// Размер обрабатываемого блока данных.
 	BlockSize() int
+}
+
+// Интерфейс, реализующий логику вычисления HMAC
+type HMAC interface {
+	// Вычисляет HMAC для ключа и данных
+	Sum(key []byte, data []byte) ([]byte, error)
+	// Максимально допустимый размер ключа в байтах
+	KeySizeMax() int
 }
