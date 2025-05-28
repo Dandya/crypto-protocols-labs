@@ -23,13 +23,13 @@ func NewLog(path string) (*Log, error) {
 }
 
 func (*Log) Info(msg string) {
-	log.Print("Info: " + msg)
+	log.Print("[Info] " + msg)
 }
 
 func (*Log) Error(msg string) {
-	log.Print("Error: " + msg)
+	log.Print("[Error] " + msg)
 }
 
 func (*Log) Fatal(msg string) {
-	log.Fatal("Fatal: " + msg)
+	log.Fatal("[Fatal] " + msg)
 }

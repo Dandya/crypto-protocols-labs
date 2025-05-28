@@ -19,15 +19,20 @@ type KeysManager struct {
 	keyTimeLife int64
 	usingKeys   []KeyInfo
 	mtx         sync.Mutex
+	log         models.Log
 }
 
 func NewKeysManager(time_life int64) *KeysManager {
 	return &KeysManager{keyTimeLife: time_life}
 }
 
+func NewKeysManagerWithLog(time_life int64, log models.Log) *KeysManager {
+	return &KeysManager{keyTimeLife: time_life, log: log}
+}
+
 func (km *KeysManager) IsAvailable(key models.Key) (bool, error) {
 	if km.keyTimeLife == 0 {
-		return true, nil
+		return false, nil
 	}
 
 	km.mtx.Lock()
@@ -40,6 +45,13 @@ func (km *KeysManager) IsAvailable(key models.Key) (bool, error) {
 		}
 	}
 	return false, errors.New("key not find")
+}
+
+func (km *KeysManager) isAvailable(key KeyInfo) bool {
+	if km.keyTimeLife != 0 && key.Key != nil {
+		return (km.keyTimeLife > time.Now().Unix()-key.CreateTime)
+	}
+	return false
 }
 
 func fillKey(b []byte, k models.Key) {
@@ -56,6 +68,9 @@ func (km *KeysManager) addNewKey(b models.BaseAlgorithm, data *BuildData,
 
 	now := time.Now().Unix()
 	km.usingKeys = append(km.usingKeys, KeyInfo{Key: k, Count: 1, CreateTime: now})
+	if km.log != nil {
+		km.log.Info("crypto::KeyManager: new key created")
+	}
 	return nil
 }
 
@@ -64,10 +79,13 @@ func (km *KeysManager) GetNextKey(b models.BaseAlgorithm, data *BuildData,
 	km.mtx.Lock()
 	defer km.mtx.Unlock()
 
-	err := km.addNewKey(b, data, method)
-	if err != nil {
-		return nil, err
+	if len(km.usingKeys) == 0 || !km.isAvailable(km.usingKeys[len(km.usingKeys)-1]) {
+		err := km.addNewKey(b, data, method)
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	return km.usingKeys[len(km.usingKeys)-1].Key, nil
 }
 
@@ -83,6 +101,9 @@ func (km *KeysManager) Clear(key models.Key) error {
 			if k.Count == 0 {
 				k.Key.Clear()
 				km.usingKeys = append(km.usingKeys[:i], km.usingKeys[i+1:]...)
+				if km.log != nil {
+					km.log.Info("crypto::KeyManager: key deleted")
+				}
 			}
 			return nil
 		}

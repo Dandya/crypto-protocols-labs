@@ -4,7 +4,7 @@ import (
 	"crypto/subtle"
 	"testing"
 
-	"gost_magma_cbc/utils"
+	"gost_magma_cbc/crypto/manage"
 )
 
 func TestMagmaSbox(t *testing.T) {
@@ -66,7 +66,7 @@ func TestMagmaG(t *testing.T) {
 func TestMagma(t *testing.T) {
 	magma := Magma{}
 
-	hdata, err := utils.ConvertHexBigEndian(
+	hdata, err := manage.ConvertHexBigEndian(
 		"ffeeddccbbaa99887766554433221100f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff")
 	if err != nil {
 		t.Error(err.Error())

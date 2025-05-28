@@ -3,10 +3,10 @@ package manage
 import (
 	"crypto/rand"
 	"crypto/subtle"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"gost_magma_cbc/crypto/models"
-	"gost_magma_cbc/utils"
 	"os"
 )
 
@@ -27,6 +27,22 @@ type BuildData struct {
 	Bytes    *[]byte
 }
 
+func ConvertHexBigEndian(h string) ([]byte, error) {
+	hdata, err := hex.DecodeString(h)
+	if err != nil {
+		return nil, err
+	}
+	// to little endian
+	for i, j := 0, len(hdata)-1; i < j; i, j = i+1, j-1 {
+		hdata[i], hdata[j] = hdata[j], hdata[i]
+	}
+	return hdata, nil
+}
+
+func ConvertHexLittleEndian(h string) ([]byte, error) {
+	return hex.DecodeString(h)
+}
+
 func BuildFrom(data *BuildData, method BuildMethod, l int) ([]byte, error) {
 	if data == nil {
 		return nil, errors.New("nil data")
@@ -36,7 +52,7 @@ func BuildFrom(data *BuildData, method BuildMethod, l int) ([]byte, error) {
 		if data.BEString == nil {
 			return nil, errors.New("nil big endian string")
 		}
-		b, err := utils.ConvertHexBigEndian(*data.BEString)
+		b, err := ConvertHexBigEndian(*data.BEString)
 		if err != nil {
 			return nil, err
 		}
@@ -50,7 +66,7 @@ func BuildFrom(data *BuildData, method BuildMethod, l int) ([]byte, error) {
 		if data.LEString == nil {
 			return nil, errors.New("nil little endian string")
 		}
-		b, err := utils.ConvertHexLittleEndian(*data.LEString)
+		b, err := ConvertHexLittleEndian(*data.LEString)
 		if err != nil {
 			return nil, err
 		}

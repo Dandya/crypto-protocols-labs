@@ -1,24 +1,6 @@
 package models
 
-type Key interface {
-	GetPart(i int) any
-	Set(i int, v byte)
-	PartLen() int
-	Len() int
-	Data() []byte
-	Clear()
-}
-
-type Block interface {
-	GetPart(i int) any
-	SetPart(i int, v any)
-	Get(i int) byte
-	Set(i int, v byte)
-	PartLen() int
-	Len() int
-	Data() []byte
-	Clear()
-}
+import "io"
 
 type Mode int
 
@@ -27,24 +9,102 @@ const (
 	DecryptMode Mode = 1
 )
 
+// Интерфейс, реализующий логику вывода сообщений
+type Log interface {
+	// Простой вывод информации.
+	Info(msg string)
+	// Вывод информации с сигнализацией об ошибке.
+	Error(msg string)
+	// Вывод информации с сигнализацией об ошибке и завершением программы.
+	Fatal(msg string)
+}
+
+// Интерфейс, реализующий логику работы с ключом
+type Key interface {
+	// Получение части данных.
+	GetPart(i int) any
+	// Установка части данных.
+	Set(i int, v byte)
+	// Длина части данных в байтах.
+	PartLen() int
+	// Длина данных в байтах.
+	Len() int
+	// Получение среза с данными.
+	Data() []byte
+	// Очистка данных (зануление).
+	Clear()
+}
+
+// Интерфейс, реализующий логику работы с блоком данных
+type Block interface {
+	// Получение части данных.
+	GetPart(i int) any
+	// Установка части данных.
+	SetPart(i int, v any)
+	// Получение байта данных.
+	Get(i int) byte
+	// Установка байта данных.
+	Set(i int, v byte)
+	// Длина части данных в байтах.
+	PartLen() int
+	// Длина данных в байтах.
+	Len() int
+	// Получение среза с данными.
+	Data() []byte
+	// Очистка данных (зануление).
+	Clear()
+}
+
+// Интерфейс, реализующий логику работы базового алгоритма шифрования
 type BaseAlgorithm interface {
+	// Зашифровывает src блок и записывает изменения в dst блок.
+	// src и dst для оптимизации могут ссылаться на одни данные.
 	Encrypt(key Key, src, dst Block)
+	// Расшифровывает src блок и записывает изменения в dst блок.
+	// src и dst для оптимизации могут ссылаться на одни данные.
 	Decrypt(key Key, src, dst Block)
-	NewKey() Key
+	// Создание блока необходимого размера
 	NewBlock() Block
+	// Создание ключа необходимого размера
+	NewKey() Key
+	// Длина блока в байтах
 	BlockLen() int
+	// Длина ключа в байтах
 	KeyLen() int
 }
 
+// Интерфейс, реализующий логику работы алгоритма дополнения блока данных
 type BlockAdder interface {
+	// Возвращает массив, который необходимо добавить к данным
 	GetDataFor(remains_len int, block_len int) []byte
+	// Возвращает длину добавленной части по расшифрованным данным
 	GetSizeIn(data []byte) (int, error)
 }
 
+// Интерфейс, реализующий логику режима шифрования
 type CryptoModeStream interface {
+	// Зашифровывает src блок и записывает изменения в dst блок.
+	// src и dst для оптимизации могут ссылаться на одни данные.
 	Encrypt(base BaseAlgorithm, key Key, src Block, dst Block)
+	// Расшифровывает src блок и записывает изменения в dst блок.
+	// src и dst для оптимизации могут ссылаться на одни данные.
 	Decrypt(base BaseAlgorithm, key Key, src Block, dst Block)
 }
 
 type Hasher interface {
+	// Вычисляет хэш-сумму для данных и изменяет базовое состояние хэша.
+	io.Writer
+
+	// Вычисляет хэш-сумму для данных и возвращает её.
+	// Состояние базовое состояние хэша не меняется.
+	Sum(b []byte) []byte
+
+	// Возвращает базовое состояние хэша в начальное состояние.
+	Reset()
+
+	// Возвращает размер хэш-суммы в байтах.
+	Size() int
+
+	// Размер обрабатываемого блока данных.
+	BlockSize() int
 }

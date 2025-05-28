@@ -2,8 +2,8 @@ package magma
 
 import (
 	"crypto/subtle"
+	"gost_magma_cbc/crypto/manage"
 	"gost_magma_cbc/crypto/models"
-	"gost_magma_cbc/utils"
 	"os"
 	"testing"
 )
@@ -11,7 +11,7 @@ import (
 func TestMagmaKey(t *testing.T) {
 	magma := Magma{}
 
-	hdata, err := utils.ConvertHexBigEndian(
+	hdata, err := manage.ConvertHexBigEndian(
 		"ffeeddccbbaa99887766554433221100f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff")
 	if err != nil {
 		t.Error(err.Error())

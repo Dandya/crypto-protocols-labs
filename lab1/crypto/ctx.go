@@ -8,7 +8,6 @@ import (
 	"gost_magma_cbc/crypto/manage"
 	"gost_magma_cbc/crypto/mode"
 	"gost_magma_cbc/crypto/models"
-	"gost_magma_cbc/utils"
 	"unsafe"
 )
 
@@ -29,12 +28,12 @@ const (
 )
 
 type CryptoManager struct {
-	log     *utils.Log
+	log     models.Log
 	keysMgr manage.KeysManager
 }
 
 type CryptoCtx struct {
-	Log   *utils.Log
+	Log   models.Log
 	base  models.BaseAlgorithm
 	mode  models.CryptoModeStream
 	adder models.BlockAdder
@@ -57,15 +56,16 @@ type CryptoSettings struct {
 	Base    CryptoBase
 	Mode    CryptoMode
 	AddType AdderType
+	Log     models.Log
 }
 
-func NewCryptoManager(settings *CryptoSettings, log *utils.Log) *CryptoManager {
-	if log == nil || settings == nil {
+func NewCryptoManager(settings *CryptoSettings) *CryptoManager {
+	if settings == nil {
 		return nil
 	}
 	mng := &CryptoManager{}
-	mng.log = log
-	mng.keysMgr = *manage.NewKeysManager(settings.KeySetting.TimeLife)
+	mng.log = settings.Log
+	mng.keysMgr = *manage.NewKeysManagerWithLog(settings.KeySetting.TimeLife, settings.Log)
 	return mng
 }
 
@@ -217,8 +217,3 @@ func (ctx *CryptoCtx) DecryptLast(src []byte, trg *[]byte) (int, error) {
 func (ctx *CryptoCtx) DataAlignment() int {
 	return ctx.block.Len()
 }
-
-// ! не забыть про
-// ! [ ] функции шифрования
-// ! [ ] освобождение контекста
-// ! [ ] дополнение блока

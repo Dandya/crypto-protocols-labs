@@ -10,7 +10,7 @@ import (
 type Config struct {
 	LogFile         string
 	EnableHashCheck bool
-	SHA256HashLE    string
+	HashLE          string
 	Form            string
 	Key             string
 	IV              string

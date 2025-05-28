@@ -11,10 +11,6 @@ import (
 	"time"
 )
 
-func F(b []byte) {
-	b[0] = '0'
-}
-
 func EncryptFile(in, out string, ctx *crypto.CryptoCtx, buff_len int) {
 	buff := make([]byte, buff_len)
 	fileInfo, err := os.Stat(in)
@@ -161,8 +157,10 @@ func main() {
 		os.Exit(2)
 	}
 
+	l.Info("main: start work")
+
 	if conf.EnableHashCheck {
-		hash_bdata := manage.BuildData{LEString: &conf.SHA256HashLE}
+		hash_bdata := manage.BuildData{LEString: &conf.HashLE}
 		h_t, err := manage.BuildFrom(&hash_bdata, manage.BuildFromLEString, 32)
 		if err != nil {
 			l.Fatal(err.Error())
@@ -180,6 +178,7 @@ func main() {
 	settings.Mode = crypto.ModeCBC
 	settings.Base = crypto.BaseAlgorithmMagma
 	settings.AddType = crypto.AdderType2
+	settings.Log = l
 	switch conf.Form {
 	case "Random":
 		settings.KeySetting.Method = manage.BuildFromRandom
@@ -195,6 +194,7 @@ func main() {
 		settings.KeySetting.Data = manage.BuildData{LEString: &conf.Key}
 		settings.IVSetting.Method = manage.BuildFromLEString
 		settings.IVSetting.Data = manage.BuildData{LEString: &conf.IV}
+		settings.IVSetting.Len = len(conf.IV) / 2
 	case "File":
 		settings.KeySetting.Method = manage.BuildFromFile
 		settings.KeySetting.Data = manage.BuildData{File: &conf.Key}
@@ -202,9 +202,9 @@ func main() {
 		settings.IVSetting.Data = manage.BuildData{File: &conf.IV}
 	}
 
-	mng := crypto.NewCryptoManager(&settings, l)
+	mng := crypto.NewCryptoManager(&settings)
 	if mng == nil {
-		l.Fatal("[main] error init crypto module")
+		l.Fatal("main: error init crypto module")
 	}
 
 	if conf.TestMode == "1" {
@@ -216,7 +216,7 @@ func main() {
 		start := time.Now().UnixNano()
 		ctx := mng.NewCryptoCtx(&settings)
 		if ctx == nil {
-			l.Fatal("[main] error init crypto ctx")
+			l.Fatal("main: error init crypto ctx")
 		}
 
 		if conf.BufferLen%ctx.DataAlignment() != 0 {
@@ -232,7 +232,7 @@ func main() {
 		start = time.Now().UnixNano()
 		ctx = mng.NewCryptoCtx(&settings)
 		if ctx == nil {
-			l.Fatal("[main] error init crypto ctx")
+			l.Fatal("main: error init crypto ctx")
 		}
 		DecryptFile(conf.FileOut, conf.FileOut+".dec", ctx, conf.BufferLen)
 		mng.FreeCryptoCtx(ctx)
@@ -245,7 +245,7 @@ func main() {
 		fmt.Printf("Blocks: %d\n", conf.BlocksCount)
 		ctx := mng.NewCryptoCtx(&settings)
 		if ctx == nil {
-			l.Fatal("[main] error init crypto ctx")
+			l.Fatal("main: error init crypto ctx")
 		}
 
 		iv := ctx.IV
@@ -275,7 +275,7 @@ func main() {
 			settings.KeySetting.Method = manage.BuildFromRandom
 			ctx = mng.NewCryptoCtx(&settings)
 			if ctx == nil {
-				l.Fatal("[main] error init crypto ctx")
+				l.Fatal("main: error init crypto ctx")
 			}
 
 			ld, err := ctx.EncryptLast(data, &data)
@@ -295,7 +295,7 @@ func main() {
 			start = time.Now().UnixNano()
 			ctx = mng.NewCryptoCtx(&settings)
 			if ctx == nil {
-				l.Fatal("[main] error init crypto ctx")
+				l.Fatal("main: error init crypto ctx")
 			}
 			ld, err = ctx.DecryptLast(data, &data)
 			if err != nil {
@@ -312,4 +312,5 @@ func main() {
 	} else {
 		l.Fatal("unsupported test mode")
 	}
+	l.Info("main: end work")
 }

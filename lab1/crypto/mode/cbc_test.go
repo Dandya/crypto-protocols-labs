@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"gost_magma_cbc/crypto/base/magma"
-	"gost_magma_cbc/utils"
+	"gost_magma_cbc/crypto/manage"
 )
 
 func TestCBC(t *testing.T) {
-	ivhdata, err := utils.ConvertHexBigEndian(
+	ivhdata, err := manage.ConvertHexBigEndian(
 		"1234567890abcdef234567890abcdef134567890abcdef12")
 	if err != nil {
 		t.Error(err.Error())
@@ -22,7 +22,7 @@ func TestCBC(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	khdata, err := utils.ConvertHexBigEndian(
+	khdata, err := manage.ConvertHexBigEndian(
 		"ffeeddccbbaa99887766554433221100f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff")
 	if err != nil {
 		t.Error(err.Error())

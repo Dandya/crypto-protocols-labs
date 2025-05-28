@@ -27,7 +27,8 @@ func TestCrypto(t *testing.T) {
 	settings.Base = BaseAlgorithmMagma
 	settings.Mode = ModeCBC
 	settings.AddType = AdderType2
-	mng := NewCryptoManager(&settings, log)
+	settings.Log = log
+	mng := NewCryptoManager(&settings)
 	if mng == nil {
 		t.Fatal("mng is nil")
 	}
