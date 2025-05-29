@@ -95,17 +95,13 @@ type CryptoModeStream interface {
 type Hasher interface {
 	// Вычисляет хэш-сумму для данных и изменяет базовое состояние хэша.
 	io.Writer
-
 	// Вычисляет хэш-сумму для данных и возвращает её.
 	// Состояние базовое состояние хэша не меняется.
 	Sum(b []byte) []byte
-
 	// Возвращает базовое состояние хэша в начальное состояние.
 	Reset()
-
 	// Возвращает размер хэш-суммы в байтах.
 	Size() int
-
 	// Размер обрабатываемого блока данных.
 	BlockSize() int
 }
@@ -115,7 +111,9 @@ type HMAC interface {
 	// Вычисляет HMAC для ключа и данных
 	Sum(key []byte, data []byte) ([]byte, error)
 	// Максимально допустимый размер ключа в байтах
-	KeySizeMax() int
+	KeyMaxSize() int
+	// Максимальный размер выходных данных
+	MaxSize() int
 	// Возвращает базовое состояние хэша в начальное состояние.
 	Reset()
 }
@@ -124,4 +122,19 @@ type HMAC interface {
 type KDF interface {
 	// Деверсификации ключа
 	Create(key []byte, label []byte, seed []byte) ([]byte, error)
+	// Максимально допустимый размер ключа в байтах
+	KeyMaxSize() int
+	// Максимальный размер выходных данных
+	MaxSize() int
+	// Возвращает базовое состояние хэша в начальное состояние.
+	Reset()
 }
+
+// Структура для передача параметров в KDF
+type KDFParams struct {
+	Kdf KDF
+	Key []byte
+	Label []byte
+	Seed []byte
+}
+

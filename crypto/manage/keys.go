@@ -1,7 +1,6 @@
 package manage
 
 import (
-	"crypto/subtle"
 	"errors"
 	"gost_magma_cbc/crypto/models"
 	"sync"
@@ -54,9 +53,9 @@ func (km *KeysManager) isAvailable(key KeyInfo) bool {
 	return false
 }
 
-func fillKey(b []byte, k models.Key) {
-	subtle.ConstantTimeCopy(1, k.Data(), b)
-}
+// func fillKey(b []byte, k models.Key) {
+// 	subtle.ConstantTimeCopy(1, k.Data(), b)
+// }
 
 func (km *KeysManager) addNewKey(b models.BaseAlgorithm, data *BuildData,
 	method BuildMethod) error {

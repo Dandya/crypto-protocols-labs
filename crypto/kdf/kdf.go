@@ -29,3 +29,15 @@ func (k *KDF256) Create(key []byte, label []byte, seed []byte) ([]byte, error) {
 
 	return k.h.Sum(key, data)
 }
+
+func (k* KDF256) KeyMaxSize() int {
+	return k.h.KeyMaxSize()
+}
+
+func (k* KDF256) MaxSize() int {
+	return k.h.MaxSize()
+}
+
+func (k* KDF256) Reset() {
+	k.h.Reset()
+}

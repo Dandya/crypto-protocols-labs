@@ -7,10 +7,13 @@ import (
 	"github.com/pelletier/go-toml"
 )
 
-type Config struct {
-	LogFile         string
-	EnableHashCheck bool
-	HashLE          string
+type Data struct {
+	Form string
+	Value string
+	Len int
+}
+
+type LabFirst struct {
 	Form            string
 	Key             string
 	IV              string
@@ -19,6 +22,22 @@ type Config struct {
 	FileOut         string
 	TestMode        string
 	BlocksCount     int64
+}
+
+type LabSecond struct {
+	Form            string
+	Key             string
+	IV              string
+	Label           Data
+	Seed            Data
+}
+
+type Config struct {
+	LogFile         string
+	EnableHashCheck bool
+	HashLE          string
+	Lab1            LabFirst
+	Lab2            LabSecond
 	// unused
 	KeyTimeLife int
 }

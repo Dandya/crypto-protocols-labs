@@ -18,6 +18,7 @@ const (
 	BuildFromBytes    BuildMethod = 2
 	BuildFromFile     BuildMethod = 3
 	BuildFromRandom   BuildMethod = 4
+	BuildFromKDF      BuildMethod = 5
 )
 
 type BuildData struct {
@@ -25,6 +26,7 @@ type BuildData struct {
 	LEString *string
 	File     *string
 	Bytes    *[]byte
+	Kdf      models.KDFParams
 }
 
 func ConvertHexBigEndian(h string) ([]byte, error) {
@@ -104,7 +106,11 @@ func BuildFrom(data *BuildData, method BuildMethod, l int) ([]byte, error) {
 			return nil, errors.New("error reading random data")
 		}
 		return b, nil
-
+	case BuildFromKDF:
+		if l > data.Kdf.Kdf.MaxSize() {
+			return nil, errors.New("len above supported len")
+		}
+		return data.Kdf.Kdf.Create(data.Kdf.Key, data.Kdf.Label, data.Kdf.Seed)
 	default:
 		return nil, errors.New("unknown method")
 	}

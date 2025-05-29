@@ -157,7 +157,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	l.Info("main: start work")
+	l.Info("lab1: start work")
 
 	if conf.EnableHashCheck {
 		hash_bdata := manage.BuildData{LEString: &conf.HashLE}
@@ -179,52 +179,52 @@ func main() {
 	settings.Base = crypto.BaseAlgorithmMagma
 	settings.AddType = crypto.AdderType2
 	settings.Log = l
-	switch conf.Form {
+	switch conf.Lab1.Form {
 	case "Random":
 		settings.KeySetting.Method = manage.BuildFromRandom
 		settings.IVSetting.Method = manage.BuildFromRandom
 	case "BEString":
 		settings.KeySetting.Method = manage.BuildFromBEString
-		settings.KeySetting.Data = manage.BuildData{BEString: &conf.Key}
+		settings.KeySetting.Data = manage.BuildData{BEString: &conf.Lab1.Key}
 		settings.IVSetting.Method = manage.BuildFromBEString
-		settings.IVSetting.Data = manage.BuildData{BEString: &conf.IV}
-		settings.IVSetting.Len = len(conf.IV) / 2
+		settings.IVSetting.Data = manage.BuildData{BEString: &conf.Lab1.IV}
+		settings.IVSetting.Len = len(conf.Lab1.IV) / 2
 	case "LEString":
 		settings.KeySetting.Method = manage.BuildFromLEString
-		settings.KeySetting.Data = manage.BuildData{LEString: &conf.Key}
+		settings.KeySetting.Data = manage.BuildData{LEString: &conf.Lab1.Key}
 		settings.IVSetting.Method = manage.BuildFromLEString
-		settings.IVSetting.Data = manage.BuildData{LEString: &conf.IV}
-		settings.IVSetting.Len = len(conf.IV) / 2
+		settings.IVSetting.Data = manage.BuildData{LEString: &conf.Lab1.IV}
+		settings.IVSetting.Len = len(conf.Lab1.IV) / 2
 	case "File":
 		settings.KeySetting.Method = manage.BuildFromFile
-		settings.KeySetting.Data = manage.BuildData{File: &conf.Key}
+		settings.KeySetting.Data = manage.BuildData{File: &conf.Lab1.Key}
 		settings.IVSetting.Method = manage.BuildFromFile
-		settings.IVSetting.Data = manage.BuildData{File: &conf.IV}
+		settings.IVSetting.Data = manage.BuildData{File: &conf.Lab1.IV}
 	}
 
 	mng := crypto.NewCryptoManager(&settings)
 	if mng == nil {
-		l.Fatal("main: error init crypto module")
+		l.Fatal("lab1: error init crypto module")
 	}
 
-	if conf.TestMode == "1" {
+	if conf.Lab1.TestMode == "1" {
 		fmt.Println("Test mode 1")
-		fmt.Printf("File: %s\n", conf.FileIn)
+		fmt.Printf("File: %s\n", conf.Lab1.FileIn)
 		var enc_time int64 = 0
 		var dec_time int64 = 0
 
 		start := time.Now().UnixNano()
 		ctx := mng.NewCryptoCtx(&settings)
 		if ctx == nil {
-			l.Fatal("main: error init crypto ctx")
+			l.Fatal("lab1: error init crypto ctx")
 		}
 
-		if conf.BufferLen%ctx.DataAlignment() != 0 {
+		if conf.Lab1.BufferLen%ctx.DataAlignment() != 0 {
 			ctx.Log.Fatal("Incorrect buffer len, alignment " +
 				strconv.FormatInt(int64(ctx.DataAlignment()), 10))
 		}
 
-		EncryptFile(conf.FileIn, conf.FileOut, ctx, conf.BufferLen)
+		EncryptFile(conf.Lab1.FileIn, conf.Lab1.FileOut, ctx, conf.Lab1.BufferLen)
 		mng.FreeCryptoCtx(ctx)
 		end := time.Now().UnixNano()
 		enc_time = end - start
@@ -232,20 +232,20 @@ func main() {
 		start = time.Now().UnixNano()
 		ctx = mng.NewCryptoCtx(&settings)
 		if ctx == nil {
-			l.Fatal("main: error init crypto ctx")
+			l.Fatal("lab1: error init crypto ctx")
 		}
-		DecryptFile(conf.FileOut, conf.FileOut+".dec", ctx, conf.BufferLen)
+		DecryptFile(conf.Lab1.FileOut, conf.Lab1.FileOut+".dec", ctx, conf.Lab1.BufferLen)
 		mng.FreeCryptoCtx(ctx)
 		end = time.Now().UnixNano()
 		dec_time = end - start
 		fmt.Printf("Encryption time: %f s\n", float64(enc_time)/1000000000)
 		fmt.Printf("Decryption time: %f s\n", float64(dec_time)/1000000000)
-	} else if conf.TestMode == "2" {
+	} else if conf.Lab1.TestMode == "2" {
 		fmt.Println("Test mode 2")
-		fmt.Printf("Blocks: %d\n", conf.BlocksCount)
+		fmt.Printf("Blocks: %d\n", conf.Lab1.BlocksCount)
 		ctx := mng.NewCryptoCtx(&settings)
 		if ctx == nil {
-			l.Fatal("main: error init crypto ctx")
+			l.Fatal("lab1: error init crypto ctx")
 		}
 
 		iv := ctx.IV
@@ -258,12 +258,12 @@ func main() {
 		settings.KeySetting.Data = keybdata
 
 		bdata := manage.BuildData{}
-		data, err := manage.BuildFrom(&bdata, manage.BuildFromRandom, int(conf.BlocksCount)*ctx.DataAlignment())
+		data, err := manage.BuildFrom(&bdata, manage.BuildFromRandom, int(conf.Lab1.BlocksCount)*ctx.DataAlignment())
 		if err != nil {
 			ctx.Log.Fatal("Gen data error")
 		}
 
-		iter_count := 1000000 / conf.BlocksCount
+		iter_count := 1000000 / conf.Lab1.BlocksCount
 		var i int64 = 0
 		var enc_time int64 = 0
 		var dec_time int64 = 0
@@ -275,14 +275,14 @@ func main() {
 			settings.KeySetting.Method = manage.BuildFromRandom
 			ctx = mng.NewCryptoCtx(&settings)
 			if ctx == nil {
-				l.Fatal("main: error init crypto ctx")
+				l.Fatal("lab1: error init crypto ctx")
 			}
 
 			ld, err := ctx.EncryptLast(data, &data)
 			if err != nil {
 				ctx.Log.Fatal("encryption data error")
 			}
-			if ld != int(conf.BlocksCount+1)*(ctx.DataAlignment()) {
+			if ld != int(conf.Lab1.BlocksCount+1)*(ctx.DataAlignment()) {
 				ctx.Log.Fatal("len encryption data error")
 			}
 			end := time.Now().UnixNano()
@@ -295,13 +295,13 @@ func main() {
 			start = time.Now().UnixNano()
 			ctx = mng.NewCryptoCtx(&settings)
 			if ctx == nil {
-				l.Fatal("main: error init crypto ctx")
+				l.Fatal("lab1: error init crypto ctx")
 			}
 			ld, err = ctx.DecryptLast(data, &data)
 			if err != nil {
 				ctx.Log.Fatal("decryption data error")
 			}
-			if ld != int(conf.BlocksCount)*(ctx.DataAlignment()) {
+			if ld != int(conf.Lab1.BlocksCount)*(ctx.DataAlignment()) {
 				ctx.Log.Fatal("len decryption data error")
 			}
 			end = time.Now().UnixNano()
@@ -312,5 +312,5 @@ func main() {
 	} else {
 		l.Fatal("unsupported test mode")
 	}
-	l.Info("main: end work")
+	l.Info("lab1: end work")
 }

@@ -68,8 +68,12 @@ func (h *HMAC256) Sum(key []byte, data []byte) ([]byte, error) {
 	return s.Sum(nil), nil
 }
 
-func (h *HMAC256) KeySizeMax() int {
+func (h *HMAC256) KeyMaxSize() int {
 	return 64
+}
+
+func (h *HMAC256) MaxSize() int {
+	return 32
 }
 
 func (h *HMAC256) Reset() {
