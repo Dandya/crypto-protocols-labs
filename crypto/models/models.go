@@ -116,4 +116,12 @@ type HMAC interface {
 	Sum(key []byte, data []byte) ([]byte, error)
 	// Максимально допустимый размер ключа в байтах
 	KeySizeMax() int
+	// Возвращает базовое состояние хэша в начальное состояние.
+	Reset()
+}
+
+// Интерфейс, реализующий логику деверсификации ключа
+type KDF interface {
+	// Деверсификации ключа
+	Create(key []byte, label []byte, seed []byte) ([]byte, error)
 }

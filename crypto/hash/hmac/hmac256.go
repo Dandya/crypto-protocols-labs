@@ -31,10 +31,11 @@ var (
 )
 
 type HMAC256 struct {
+	h models.Hasher
 }
 
 func NewHMAC256() models.HMAC {
-	return &HMAC256{}
+	return &HMAC256{h: streebog.New256()}
 }
 
 func (h *HMAC256) Sum(key []byte, data []byte) ([]byte, error) {
@@ -44,24 +45,32 @@ func (h *HMAC256) Sum(key []byte, data []byte) ([]byte, error) {
 	if len(key) > 512 {
 		return nil, errors.New("unsupported key len")
 	}
+
 	zero_count := 64 - len(key)
-	for i := 0; i < zero_count; i++ {
+	subtle.ConstantTimeCopy(1, k[:zero_count], key)
+	for i := zero_count; i < 64; i++ {
 		k[i] = 0
 	}
-	subtle.ConstantTimeCopy(1, k[zero_count:], key)
-	k_tmp := [64]byte{}
+	k_tmp := make([]byte, 64)
 	subtle.ConstantTimeCopy(1, k_tmp[:], k[:])
 
 	subtle.XORBytes(k_tmp[:], k_tmp[:], ipad[:])
 	subtle.XORBytes(k[:], k[:], opad[:])
-	data = append(data, k_tmp[:]...)
-	sum := s.Sum(data)
-	d := [128]byte{}
-	subtle.ConstantTimeCopy(1, d[0:64], sum)
-	subtle.ConstantTimeCopy(1, d[64:], k[:])
-	return s.Sum(d[:]), nil
+	k_tmp = append(k_tmp, data...)
+	s.Write(k_tmp)
+	sum := s.Sum(nil)
+
+	s.Reset()
+	d := [96]byte{}
+	subtle.ConstantTimeCopy(1, d[0:64], k[:])
+	subtle.ConstantTimeCopy(1, d[64:], sum)
+	s.Write(d[:])
+	return s.Sum(nil), nil
 }
 
 func (h *HMAC256) KeySizeMax() int {
 	return 64
+}
+
+func (h *HMAC256) Reset() {
 }
