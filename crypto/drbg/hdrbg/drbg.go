@@ -3,7 +3,7 @@ package hdrbg
 import (
 	"crypto/subtle"
 	"errors"
-	"gost_magma_cbc/crypto/models"
+	"hash"
 	"time"
 )
 
@@ -24,10 +24,10 @@ type HashDrbg struct {
 	gm                      bool
 	c                       []byte
 	hashSize                int
-	newHash                 func() models.Hasher
+	newHash                 func() hash.Hash
 }
 
-func NewHashDrbg(newHash func() models.Hasher, gm bool, entropy, nonce, personalization []byte) (*HashDrbg, error) {
+func NewHashDrbg(newHash func() hash.Hash, gm bool, entropy, nonce, personalization []byte) (*HashDrbg, error) {
 	hd := &HashDrbg{}
 
 	hd.gm = gm
@@ -36,16 +36,16 @@ func NewHashDrbg(newHash func() models.Hasher, gm bool, entropy, nonce, personal
 	h := newHash()
 	hd.hashSize = h.Size()
 
-	if (len(entropy) == 0 || len(entropy) >= MAX_ADDITION_LEN) {
-		return nil, errors.New(PREFIX+"invalid entropy length")
+	if len(entropy) == 0 || len(entropy) >= MAX_ADDITION_LEN {
+		return nil, errors.New(PREFIX + "invalid entropy length")
 	}
 
 	if len(nonce) == 0 || len(nonce) >= MAX_ADDITION_LEN {
-		return nil, errors.New(PREFIX+"invalid nonce length")
+		return nil, errors.New(PREFIX + "invalid nonce length")
 	}
 
 	if len(personalization) >= MAX_ADDITION_LEN {
-		return nil, errors.New(PREFIX+"personalization is too long")
+		return nil, errors.New(PREFIX + "personalization is too long")
 	}
 
 	if hd.hashSize == 64 {
@@ -84,11 +84,11 @@ func NewHashDrbg(newHash func() models.Hasher, gm bool, entropy, nonce, personal
 
 func (hd *HashDrbg) Reseed(entropy, additional []byte) error {
 	if len(entropy) == 0 || len(entropy) >= MAX_ADDITION_LEN {
-		return errors.New(PREFIX+"invalid entropy length")
+		return errors.New(PREFIX + "invalid entropy length")
 	}
 
 	if len(additional) >= MAX_ADDITION_LEN {
-		return errors.New(PREFIX+"additional input too long")
+		return errors.New(PREFIX + "additional input too long")
 	}
 
 	seedMaterial := make([]byte, len(entropy)+hd.seedLength+len(additional)+1)
@@ -116,15 +116,15 @@ func (hd *HashDrbg) Reseed(entropy, additional []byte) error {
 
 func (hd *HashDrbg) Generate(b, additional []byte) error {
 	if hd.NeedReseed() {
-		return errors.New(PREFIX+"need reseed")
+		return errors.New(PREFIX + "need reseed")
 	}
 	if len(b) > MAX_REQUEST_SIZE {
-		return errors.New(PREFIX+"too many bytes requested")
+		return errors.New(PREFIX + "too many bytes requested")
 	}
 	md := hd.newHash()
 	m := len(b)
 
-	// if len(additional_input) > 0, then
+	// if len(additional_input) > 0, then (10.1.1.4)
 	// w = Hash(0x02 || V || additional_input)
 	if len(additional) > 0 {
 		md.Write([]byte{0x02})
@@ -134,25 +134,21 @@ func (hd *HashDrbg) Generate(b, additional []byte) error {
 		md.Reset()
 		hd.addW(w)
 	}
-	if hd.gm { // leftmost(Hash(V))
-		md.Write(hd.v)
-		copy(b, md.Sum(nil))
+
+	// leftmost(Hash(V)) (10.1.1.4)
+	limit := uint64(m+md.Size()-1) / uint64(md.Size())
+	data := make([]byte, hd.seedLength)
+	copy(data, hd.v)
+	for i := 0; i < int(limit); i++ {
+		md.Write(data)
+		copy(b[i*md.Size():], md.Sum(nil))
+		addOne(data, hd.seedLength)
 		md.Reset()
-	} else {
-		limit := uint64(m+md.Size()-1) / uint64(md.Size())
-		data := make([]byte, hd.seedLength)
-		copy(data, hd.v)
-		for i := range int(limit) {
-			md.Write(data)
-			copy(b[i*md.Size():], md.Sum(nil))
-			addOne(data, hd.seedLength)
-			md.Reset()
-		}
 	}
-	// V = (V + H + C + reseed_counter) mode 2^seed_length
-	hd.addH()
-	hd.addC()
-	hd.addReseedCounter()
+	// V = (V + H + C + reseed_counter) mode 2^seed_length (10.1.1.4)
+	hd.addH()             // V + (H = Hash (0x03 || V))
+	hd.addC()             // V + C
+	hd.addReseedCounter() // V + reseed_counter
 
 	hd.reseedCounter++
 	return nil
@@ -171,7 +167,7 @@ func (hd *HashDrbg) df(seedMaterial []byte, len int) []byte {
 	md := hd.newHash()
 	limit := uint64(len+hd.hashSize-1) / uint64(hd.hashSize)
 	var requireBytes [4]byte
-	SetUint32(requireBytes[:], uint32(len<<3))
+	setUint32(requireBytes[:], uint32(len<<3))
 	var ct byte = 1
 	k := make([]byte, len)
 	for i := 0; i < int(limit); i++ {
@@ -205,7 +201,7 @@ func (hd *HashDrbg) addH() {
 
 func (hd *HashDrbg) addReseedCounter() {
 	t := make([]byte, hd.seedLength)
-	SetUint64(t[hd.seedLength-8:], hd.reseedCounter)
+	setUint64(t[hd.seedLength-8:], hd.reseedCounter)
 	add(t, hd.v, hd.seedLength)
 }
 
@@ -227,14 +223,14 @@ func addOne(data []byte, len int) {
 	}
 }
 
-func SetUint32(b []byte, v uint32) {
+func setUint32(b []byte, v uint32) {
 	b[0] = byte(v >> 24)
 	b[1] = byte(v >> 16)
 	b[2] = byte(v >> 8)
 	b[3] = byte(v)
 }
 
-func SetUint64(b []byte, v uint64) {
+func setUint64(b []byte, v uint64) {
 	b[0] = byte(v >> 56)
 	b[1] = byte(v >> 48)
 	b[2] = byte(v >> 40)
