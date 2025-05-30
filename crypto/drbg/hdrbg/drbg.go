@@ -192,6 +192,7 @@ func (hd *HashDrbg) Generate(b, additional []byte) error {
 		hd.addW(w)
 	}
 
+	// Hashgen Process
 	limit := uint64(m+md.Size()-1) / uint64(md.Size())
 	data := make([]byte, hd.seedLength)
 	copy(data, hd.v)

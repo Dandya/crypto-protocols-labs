@@ -46,28 +46,52 @@ func main() {
 		}
 	}
 
-	file_w, err := os.OpenFile(conf.Lab3.FileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
-	if err != nil {
-		l.Fatal(err.Error())
-	}
-	count := conf.Lab3.BytesCount / conf.Lab3.Buffer
-	mod := conf.Lab3.BytesCount % conf.Lab3.Buffer
+	if conf.Lab3.Mode == 1 {
+		file_w, err := os.OpenFile(conf.Lab3.FileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
+		if err != nil {
+			l.Fatal(err.Error())
+		}
+		count := conf.Lab3.BytesCount / conf.Lab3.Buffer
+		mod := conf.Lab3.BytesCount % conf.Lab3.Buffer
 
-	buff := make([]byte, conf.Lab3.Buffer)
-	d, err := hdrbg.NewHashDrbgPrng(streebog.New256, rand.Reader, 32, hdrbg.SECURITY_LEVEL_TWO, nil)
-	if err != nil {
-		l.Fatal(err.Error())
-	}
+		buff := make([]byte, conf.Lab3.Buffer)
+		d, err := hdrbg.NewHashDrbgPrng(streebog.New256, rand.Reader, 32, hdrbg.SECURITY_LEVEL_TWO, nil)
+		if err != nil {
+			l.Fatal(err.Error())
+		}
 
-	start := time.Now().UnixNano()
-	for i := count; i > 0; i-- {
-		d.Read(buff[:])
-		file_w.Write(buff[:])
+		start := time.Now().UnixNano()
+		for i := count; i > 0; i-- {
+			d.Read(buff[:])
+			file_w.Write(buff[:])
+		}
+		d.Read(buff[:mod])
+		file_w.Write(buff[:mod])
+		end := time.Now().UnixNano()
+		fmt.Printf("Processed time for %d: %f s -> %f s\n", conf.Lab3.BytesCount,
+			float64(end-start)/1000000000, float64(end-start)/(1000000000*float64(count)))
+	} else if conf.Lab3.Mode == 2 {
+		min := 1000
+		max := 10000
+		drbg, err := hdrbg.NewHashDrbgPrng(streebog.New256, rand.Reader, 32, 2, nil)
+		if err != nil {
+			l.Fatal(err.Error())
+		}
+		rand_bdata := manage.BuildData{Prng: drbg}
+		count := min + utils.GetRandomInt(max-min)
+		start := time.Now().UnixNano()
+		for i := count; i > 0; i-- {
+			_, err := manage.BuildFrom(&rand_bdata, manage.BuildFromRandom, 64)
+			if err != nil {
+				l.Fatal(err.Error())
+			}
+		}
+		end := time.Now().UnixNano()
+		fmt.Printf("Processed time for %d: %f s -> %f s\n", count,
+			float64(end-start)/1000000000, float64(end-start)/(1000000000*float64(count)))
+	} else {
+		l.Error("main: unknown method")
+
 	}
-	d.Read(buff[:mod])
-	file_w.Write(buff[:mod])
-	end := time.Now().UnixNano()
-	fmt.Printf("Processed time for %d: %f s -> %f s\n", count,
-		float64(end-start)/1000000000, float64(end-start)/(1000000000*float64(count)))
 	l.Info("lab3: end work")
 }

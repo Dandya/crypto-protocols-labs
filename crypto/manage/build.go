@@ -27,6 +27,7 @@ type BuildData struct {
 	File     *string
 	Bytes    *[]byte
 	Kdf      models.KDFParams
+	Prng     models.DRBGPrng
 }
 
 func ConvertHexBigEndian(h string) ([]byte, error) {
@@ -98,11 +99,17 @@ func BuildFrom(data *BuildData, method BuildMethod, l int) ([]byte, error) {
 		return b, nil
 	case BuildFromRandom:
 		b := make([]byte, l)
-		i, err := rand.Read(b)
+		var n int
+		var err error
+		if data.Prng != nil {
+			n, err = data.Prng.Read(b)
+		} else {
+			n, err = rand.Read(b)
+		}
 		if err != nil {
 			return nil, err
 		}
-		if i != l {
+		if n != l {
 			return nil, errors.New("error reading random data")
 		}
 		return b, nil

@@ -36,6 +36,7 @@ type LabThird struct {
 	BytesCount int
 	FileName   string
 	Buffer     int
+	Mode       int
 }
 
 type Config struct {
