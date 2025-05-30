@@ -8,28 +8,34 @@ import (
 )
 
 type Data struct {
-	Form string
+	Form  string
 	Value string
-	Len int
+	Len   int
 }
 
 type LabFirst struct {
-	Form            string
-	Key             string
-	IV              string
-	BufferLen       int
-	FileIn          string
-	FileOut         string
-	TestMode        string
-	BlocksCount     int64
+	Form        string
+	Key         string
+	IV          string
+	BufferLen   int
+	FileIn      string
+	FileOut     string
+	TestMode    string
+	BlocksCount int64
 }
 
 type LabSecond struct {
-	Form            string
-	Key             string
-	IV              string
-	Label           Data
-	Seed            Data
+	Form  string
+	Key   string
+	IV    string
+	Label Data
+	Seed  Data
+}
+
+type LabThird struct {
+	BytesCount int
+	FileName   string
+	Buffer     int
 }
 
 type Config struct {
@@ -38,6 +44,7 @@ type Config struct {
 	HashLE          string
 	Lab1            LabFirst
 	Lab2            LabSecond
+	Lab3            LabThird
 	// unused
 	KeyTimeLife int
 }

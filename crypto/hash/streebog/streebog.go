@@ -1,19 +1,17 @@
 package streebog
 
-import (
-	"gost_magma_cbc/crypto/models"
-)
+import "hash"
 
-func New(hash_size int) (models.Hasher, error) {
+func New(hash_size int) (hash.Hash, error) {
 	return newContext(hash_size)
 }
 
-func New256() models.Hasher {
+func New256() hash.Hash {
 	h, _ := New(256)
 	return h
 }
 
-func New512() models.Hasher {
+func New512() hash.Hash {
 	h, _ := New(512)
 	return h
 }
