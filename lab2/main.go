@@ -135,17 +135,16 @@ func main() {
 		os.Exit(2)
 	}
 
-	// Настройка seed
-	seed, err := BuildData(&conf.Lab2.Seed)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(2)
-	}
-
 	count := 10000 + rand.Int31n(1000000 - 10000)
 
 	start := time.Now().UnixNano()
 	for i:=count; i > 0; i-- {
+		// Настройка seed
+		seed, err := BuildData(&conf.Lab2.Seed)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(2)
+		}
 		bkdf := manage.BuildData{Kdf: models.KDFParams{Kdf: k, Key: key_data, Label: label, Seed: seed}}
 		key_data, err = manage.BuildFrom(&bkdf, manage.BuildFromKDF, ctx.Key.Len())
 		if err != nil {
@@ -154,6 +153,7 @@ func main() {
 		}
 	}
 	end := time.Now().UnixNano()
-	fmt.Printf("Processed time for %d: %f s\n", count, float64(end-start)/1000000000)
+	fmt.Printf("Processed time for %d: %f s -> %f s\n", count,
+			float64(end-start)/1000000000, float64(end-start)/(1000000000*float64(count)))
 	l.Info("lab2: end work")
 }

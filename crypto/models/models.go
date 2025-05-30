@@ -138,3 +138,13 @@ type KDFParams struct {
 	Seed []byte
 }
 
+type DRBG interface {
+	// Проверяет, необходимо ли перезапустить генератор
+	NeedReseed() bool
+	// Перезапуск генератора
+	Reseed(entropy, additional []byte) error
+	// Генерирует в b len(b) псевдослучайных байт
+	Generate(b, additional []byte) error
+	// Возвращает максимальную длину генерируемых данных
+	MaxBytesPerRequest() int
+}
